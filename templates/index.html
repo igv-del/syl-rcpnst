@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sylvan Learning Reception</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">Sylvan Learning</div>
+            <h1>Virtual Reception Desk</h1>
+        </header>
+
+        <main class="main-content">
+            <div class="chat-section">
+                <div class="chat-window" id="chat-window">
+                    <div class="message bot-message">
+                        Hello! I'm the Sylvan AI Receptionist. How can I help you today?
+                    </div>
+                </div>
+                <div class="input-area">
+                    <button id="mic-btn" class="mic-btn" onclick="toggleVoice()">🎤</button>
+                    <input type="text" id="user-input" placeholder="Ask about tuition, subjects, or scheduling..."
+                        onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+
+            <div class="side-panel" id="side-panel">
+                <div class="side-panel-header">
+                    <h3>Appointment Calendar</h3>
+                    <button onclick="closeSidePanel()" class="close-btn">×</button>
+                </div>
+                <div id="calendar-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const inputField = document.getElementById('user-input');
+            const message = inputField.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage(message, 'user-message');
+            inputField.value = '';
+
+            // Call API
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                const data = await response.json();
+                addMessage(data.response, 'bot-message');
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage("I'm having trouble connecting right now. Please try again.", 'bot-message');
+            }
+        }
+
+        function addMessage(text, className) {
+            const chatWindow = document.getElementById('chat-window');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+
+            // Check if the text contains an iframe embed
+            if (text.includes('<iframe')) {
+                // Extract the text before the iframe
+                const parts = text.split('<div class="calendar-embed">');
+                const textPart = parts[0];
+
+                // Add the text part
+                if (textPart.trim()) {
+                    messageDiv.innerHTML = textPart; // Use innerHTML to preserve formatting
+                }
+
+                // Create the iframe programmatically and move to side panel
+                if (parts[1]) {
+                    const iframeMatch = parts[1].match(/src="([^"]+)"/);
+                    if (iframeMatch) {
+                        openSidePanel(iframeMatch[1]);
+                    }
+                }
+            } else {
+                // Regular text message
+                messageDiv.textContent = text;
+            }
+
+            chatWindow.appendChild(messageDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function openSidePanel(url) {
+            const sidePanel = document.getElementById('side-panel');
+            const calendarContainer = document.getElementById('calendar-container');
+
+            // Clear previous content
+            calendarContainer.innerHTML = '';
+
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.style.border = '0';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.frameBorder = '0';
+
+            calendarContainer.appendChild(iframe);
+            sidePanel.classList.add('active');
+        }
+
+        function closeSidePanel() {
+            const sidePanel = document.getElementById('side-panel');
+            sidePanel.classList.remove('active');
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // ----------------------------
+        // Voice Interaction Logic
+        // ----------------------------
+        let recognition;
+        let isListening = false;
+        const synth = window.speechSynthesis;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function () {
+                isListening = true;
+                document.getElementById('mic-btn').classList.add('listening');
+                document.getElementById('user-input').placeholder = "Listening...";
+            };
+
+            recognition.onend = function () {
+                isListening = false;
+                document.getElementById('mic-btn').classList.remove('listening');
+                document.getElementById('user-input').placeholder = "Ask about tuition, subjects, or scheduling...";
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-input').value = transcript;
+                sendMessage(); // Auto-send after speaking
+            };
+        } else {
+            document.getElementById('mic-btn').style.display = 'none';
+            console.log("Web Speech API not supported");
+        }
+
+        function toggleVoice() {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        function speakText(text) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            synth.speak(utterance);
+        }
+
+        // Update addMessage to speak bot responses
+        const originalAddMessage = addMessage;
+        addMessage = function (text, className) {
+            originalAddMessage(text, className);
+            if (className === 'bot-message') {
+                // Strip HTML tags for speech
+                const cleanText = text.replace(/<[^>]*>/g, '').replace('[CALENDAR_EMBED]', '');
+                speakText(cleanText);
+            }
+        };
+    </script>
+</body>
+
+</html>

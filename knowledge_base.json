@@ -1,0 +1,59 @@
+{
+    "greeting": "Welcome to Sylvan Learning! I'm your AI receptionist. How can I help you today? I can answer questions about our tutoring programs, pricing, or help you schedule an assessment.",
+    "questions": [
+        {
+            "keywords": [
+                "price",
+                "cost",
+                "how much",
+                "tuition"
+            ],
+            "answer": "Our pricing varies depending on the specific program and your child's needs. We typically start with an Sylvan Insight Assessment to pinpoint exactly where your child needs help. Would you like to schedule an assessment to get a personalized quote?"
+        },
+        {
+            "keywords": [
+                "schedule",
+                "appointment",
+                "book",
+                "assessment",
+                "meet"
+            ],
+            "answer": "I can definitely help with that! You can use the calendar below to book a time that works best for you.\n\n[CALENDAR_EMBED]"
+        },
+        {
+            "keywords": [
+                "math",
+                "reading",
+                "writing",
+                "subjects"
+            ],
+            "answer": "We offer personalized tutoring in Math, Reading, Writing, Study Skills, and Homework Help for students in grades Pre-K through 12."
+        },
+        {
+            "keywords": [
+                "hours",
+                "open",
+                "time"
+            ],
+            "answer": "We are generally open Monday through Thursday from 10am to 7pm, and Saturdays from 9am to 1pm. However, hours may vary by location."
+        },
+        {
+            "keywords": [
+                "location",
+                "where",
+                "address"
+            ],
+            "answer": "We have centers located nationwide. To find the center nearest you, please visit sylvanlearning.com/locations."
+        },
+        {
+            "keywords": [
+                "human",
+                "person",
+                "talk to someone",
+                "representative"
+            ],
+            "answer": "I understand you'd like to speak with a staff member. Please call our main office at 1-800-EDUCATE during business hours, or leave your details here and we'll call you back."
+        }
+    ],
+    "default": "I'm not sure I have the exact answer for that, but I'd love to connect you with a director who can help. Would you like to schedule a quick call?"
+}
