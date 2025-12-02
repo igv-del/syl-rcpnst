@@ -29,7 +29,7 @@ SYSTEM_PROMPT = """You are a friendly and helpful AI receptionist for Sylvan Lea
 **Important:** When users ask to schedule, book, or want an appointment/assessment, ALWAYS include [CALENDAR_EMBED] at the end of your response.
 """
 user_message = "What you do?"
-api_key = "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"
+api_key = ""
 response = requests.post(
   url="https://openrouter.ai/api/v1/chat/completions",
   headers={
