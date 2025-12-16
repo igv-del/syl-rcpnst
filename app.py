@@ -305,6 +305,48 @@ def get_openrouter_response(user_message, session):
         return "OPENROUTER_FAILED"
 
 # ----------------------------
+# OpenAI Support
+# ----------------------------
+
+def get_openai_response(user_message, session):
+    """Direct OpenAI API support."""
+    api_key = config.get('openai', 'api_key', fallback='')
+    model = config.get('openai', 'model', fallback='gpt-4o-mini')
+    
+    if not api_key or api_key == 'YOUR_OPENAI_API_KEY':
+        print("[DEBUG] OpenAI API key missing.")
+        return "OPENAI_FAILED"
+
+    try:
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        # Build messages with history
+        messages = [{"role": "system", "content": SYSTEM_PROMPT + DYNAMIC_CONTEXT}]
+        messages.extend(session.history)
+        messages.append({"role": "user", "content": user_message})
+        
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": 0.7
+        }
+        
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code != 200:
+            print(f"[DEBUG] OpenAI Error: {response.text}")
+            return "OPENAI_FAILED"
+            
+        result = response.json()
+        ai_response = result['choices'][0]['message']['content']
+        return ai_response
+    except Exception as e:
+        print(f"[DEBUG] OpenAI connectivity error: {e}")
+        return "OPENAI_FAILED"
+
+# ----------------------------
 # Local LLM Support (Ollama / LM Studio)
 # ----------------------------
 
@@ -379,8 +421,11 @@ def get_ai_response(user_message, session):
     if provider == 'local':
         resp = get_local_response(user_message, session)
         if resp != "LOCAL_FAILED": return resp
-        # Fallback if local fails? Maybe to Gemini/OpenRouter?
-        print("[WARN] Local LLM failed, falling back to configured backup or Gemini.")
+        print("[WARN] Local LLM failed. Falling back to OpenAI (if configured).")
+        # Fallback to OpenAI
+        resp = get_openai_response(user_message, session)
+        if resp != "OPENAI_FAILED": return resp
+        print("[WARN] OpenAI fallback failed. Falling back to Gemini.")
     
     if provider == 'openrouter':
         resp = get_openrouter_response(user_message, session)
