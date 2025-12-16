@@ -7,6 +7,7 @@ import time
 import uuid
 from flask import Flask, render_template, request, jsonify
 from twilio.twiml.voice_response import VoiceResponse
+from llm_manager import LLMManager
 
 app = Flask(__name__)
 
@@ -88,21 +89,6 @@ def cleanup_sessions():
         del conversations[sid]
 
 # ----------------------------
-# Initialize Gemini AI
-# ----------------------------
-
-def init_gemini():
-    api_key = config.get('gemini', 'api_key', fallback='')
-    if api_key and api_key != 'YOUR_GEMINI_API_KEY_HERE':
-        genai.configure(api_key=api_key)
-        model_name = config.get('gemini', 'model', fallback='gemini-pro')
-        return genai.GenerativeModel(model_name)
-    else:
-        return None
-
-gemini_model = init_gemini()
-
-# ----------------------------
 # System Prompt & Context
 # ----------------------------
 
@@ -175,6 +161,14 @@ def load_context():
     return context_str
 
 DYNAMIC_CONTEXT = load_context()
+
+# ----------------------------
+# Initialize LLM Manager
+# ----------------------------
+
+# Combine System Prompt and Dynamic Context for the manager
+FULL_SYSTEM_PROMPT = SYSTEM_PROMPT + DYNAMIC_CONTEXT
+llm_manager = LLMManager(config, FULL_SYSTEM_PROMPT)
 
 # ----------------------------
 # Backchannel / Short Reply Handling
@@ -269,183 +263,17 @@ def validate_response(user_message, response_text, session=None):
     return response_text
 
 # ----------------------------
-# OpenRouter Fallback
-# ----------------------------
-
-def get_openrouter_response(user_message, session):
-    """Fallback to OpenRouter API with history."""
-    print("[DEBUG] Trying OpenRouter fallback...")
-    api_key = config.get('openrouter', 'api_key', fallback='')
-    model = config.get('openrouter', 'model', fallback='meta-llama/llama-3.2-3b-instruct:free')
-    try:
-        url = "https://openrouter.ai/api/v1/chat/completions"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
-        # Build messages with history
-        messages = [{"role": "system", "content": SYSTEM_PROMPT + DYNAMIC_CONTEXT}]
-        messages.extend(session.history)
-        messages.append({"role": "user", "content": user_message})
-        payload = {
-            "model": model,
-            "messages": messages,
-            "temperature": 0.7
-        }
-        print(f"[DEBUG] Calling OpenRouter with model: {model}")
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        if response.status_code != 200:
-            print(f"[DEBUG] OpenRouter Error: {response.text}")
-            return "OPENROUTER_FAILED"
-        result = response.json()
-        ai_response = result['choices'][0]['message']['content']
-        return ai_response
-    except Exception as e:
-        print(f"[DEBUG] OpenRouter error: {type(e).__name__}: {e}")
-        return "OPENROUTER_FAILED"
-
-# ----------------------------
-# OpenAI Support
-# ----------------------------
-
-def get_openai_response(user_message, session):
-    """Direct OpenAI API support."""
-    api_key = config.get('openai', 'api_key', fallback='')
-    model = config.get('openai', 'model', fallback='gpt-4o-mini')
-    
-    if not api_key or api_key == 'YOUR_OPENAI_API_KEY':
-        print("[DEBUG] OpenAI API key missing.")
-        return "OPENAI_FAILED"
-
-    try:
-        url = "https://api.openai.com/v1/chat/completions"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
-        # Build messages with history
-        messages = [{"role": "system", "content": SYSTEM_PROMPT + DYNAMIC_CONTEXT}]
-        messages.extend(session.history)
-        messages.append({"role": "user", "content": user_message})
-        
-        payload = {
-            "model": model,
-            "messages": messages,
-            "temperature": 0.7
-        }
-        
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        if response.status_code != 200:
-            print(f"[DEBUG] OpenAI Error: {response.text}")
-            return "OPENAI_FAILED"
-            
-        result = response.json()
-        ai_response = result['choices'][0]['message']['content']
-        return ai_response
-    except Exception as e:
-        print(f"[DEBUG] OpenAI connectivity error: {e}")
-        return "OPENAI_FAILED"
-
-# ----------------------------
-# Local LLM Support (Ollama / LM Studio)
-# ----------------------------
-
-def get_local_response(user_message, session):
-    """Support for local OpenAI-compatible endpoints (Ollama, LM Studio)."""
-    base_url = config.get('local', 'base_url', fallback='http://localhost:11434/v1')
-    model = config.get('local', 'model', fallback='llama3.2')
-    api_key = config.get('local', 'api_key', fallback='lm-studio') # Not usually needed for local
-    
-    # Ensure URL ends with /chat/completions if not set
-    if not base_url.endswith('/chat/completions'):
-        url = f"{base_url.rstrip('/')}/chat/completions"
-    else:
-        url = base_url
-
-    print(f"[DEBUG] Trying Local LLM: {url} with model {model}")
-    try:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
-        # Build messages with history
-        messages = [{"role": "system", "content": SYSTEM_PROMPT + DYNAMIC_CONTEXT}]
-        messages.extend(session.history)
-        messages.append({"role": "user", "content": user_message})
-        
-        payload = {
-            "model": model,
-            "messages": messages,
-            "temperature": 0.7
-        }
-        
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        if response.status_code != 200:
-            print(f"[DEBUG] Local LLM Error: {response.text}")
-            return "LOCAL_FAILED"
-            
-        result = response.json()
-        ai_response = result['choices'][0]['message']['content']
-        return ai_response
-    except Exception as e:
-        print(f"[DEBUG] Local LLM connectivity error: {e}")
-        return "LOCAL_FAILED"
-
-# ----------------------------
-# Gemini Response
-# ----------------------------
-
-def get_gemini_response(user_message, session):
-    """Try Gemini with history."""
-    if not gemini_model:
-        return get_openrouter_response(user_message, session)
-    try:
-        # Construct chat with history
-        history_str = session.get_history_string()
-        full_prompt = f"{SYSTEM_PROMPT + DYNAMIC_CONTEXT}\n\nConversation History:\n{history_str}\nUser: {user_message}\nReceptionist:"
-        chat = gemini_model.start_chat(history=[])
-        response = chat.send_message(full_prompt)
-        return response.text
-    except Exception as e:
-        print(f"[DEBUG] Gemini API error: {e}")
-        return get_openrouter_response(user_message, session)
-
-# ----------------------------
-# General LLM Dispatcher
-# ----------------------------
-
-def get_ai_response(user_message, session):
-    """Dispatch to the configured LLM provider."""
-    provider = config.get('llm', 'provider', fallback='gemini').lower()
-    
-    if provider == 'local':
-        resp = get_local_response(user_message, session)
-        if resp != "LOCAL_FAILED": return resp
-        print("[WARN] Local LLM failed. Falling back to OpenAI (if configured).")
-        # Fallback to OpenAI
-        resp = get_openai_response(user_message, session)
-        if resp != "OPENAI_FAILED": return resp
-        print("[WARN] OpenAI fallback failed. Falling back to Gemini.")
-    
-    if provider == 'openrouter':
-        resp = get_openrouter_response(user_message, session)
-        if resp != "OPENROUTER_FAILED": return resp
-
-    # Default / Fallback to Gemini
-    return get_gemini_response(user_message, session)
-
-# ----------------------------
 # Main Logic
 # ----------------------------
 
 def find_answer(message, session_id):
     _, session = get_session(session_id)
     
-    # Get Response via Dispatcher
-    ai_response = get_ai_response(message, session)
+    # Get Response via Manager
+    ai_response = llm_manager.get_response(message, session.history)
     
     # Final Fallback to Knowledge Base Search if all LLMs fail
-    if ai_response in ["OPENROUTER_FAILED", "LOCAL_FAILED"] or not ai_response:
+    if ai_response in ["OPENROUTER_FAILED", "LOCAL_FAILED", "OPENAI_FAILED", "GEMINI_FAILED", "GEMINI_NOT_CONFIGURED"] or not ai_response:
         # from knowledge_base_search import search_knowledge_base  # type: ignore
         ai_response = search_knowledge_base(message, knowledge_base)
         
