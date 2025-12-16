@@ -264,7 +264,8 @@ def validate_response(user_message, response_text, session=None):
     # --- Offline/Fallback Data Capture ---
     # If the response is the default fallback, but we detect a phone number, override it.
     # This prevents "I'm not sure" responses when the user provides the info we just asked for.
-    phone_pattern = re.compile(r'\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b')
+    # Relaxed pattern: Look for any sequence of 9 or more digits (handling user typos like '444444444')
+    phone_pattern = re.compile(r'\d[\d\s\-\.]{8,}\d') 
     if "not 100% sure" in response_text and phone_pattern.search(user_message):
         response_text = "Thanks! I've noted down your information. A director will reach out to you shortly to help."
         # Optionally log this success

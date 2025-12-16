@@ -48,7 +48,7 @@ class LLMManager:
                 "temperature": 0.7
             }
             
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
             if response.status_code != 200:
                 print(f"[DEBUG] Local LLM Error: {response.text}")
                 return "LOCAL_FAILED"
@@ -83,7 +83,7 @@ class LLMManager:
                 "temperature": 0.7
             }
             
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
             if response.status_code != 200:
                 print(f"[DEBUG] OpenAI Error: {response.text}")
                 return "OPENAI_FAILED"
@@ -113,7 +113,7 @@ class LLMManager:
                 "messages": messages,
                 "temperature": 0.7
             }
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
             if response.status_code != 200:
                 print(f"[DEBUG] OpenRouter Error: {response.text}")
                 return "OPENROUTER_FAILED"
