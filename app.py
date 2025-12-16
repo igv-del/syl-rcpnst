@@ -305,6 +305,51 @@ def get_openrouter_response(user_message, session):
         return "OPENROUTER_FAILED"
 
 # ----------------------------
+# Local LLM Support (Ollama / LM Studio)
+# ----------------------------
+
+def get_local_response(user_message, session):
+    """Support for local OpenAI-compatible endpoints (Ollama, LM Studio)."""
+    base_url = config.get('local', 'base_url', fallback='http://localhost:11434/v1')
+    model = config.get('local', 'model', fallback='llama3.2')
+    api_key = config.get('local', 'api_key', fallback='lm-studio') # Not usually needed for local
+    
+    # Ensure URL ends with /chat/completions if not set
+    if not base_url.endswith('/chat/completions'):
+        url = f"{base_url.rstrip('/')}/chat/completions"
+    else:
+        url = base_url
+
+    print(f"[DEBUG] Trying Local LLM: {url} with model {model}")
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        # Build messages with history
+        messages = [{"role": "system", "content": SYSTEM_PROMPT + DYNAMIC_CONTEXT}]
+        messages.extend(session.history)
+        messages.append({"role": "user", "content": user_message})
+        
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": 0.7
+        }
+        
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code != 200:
+            print(f"[DEBUG] Local LLM Error: {response.text}")
+            return "LOCAL_FAILED"
+            
+        result = response.json()
+        ai_response = result['choices'][0]['message']['content']
+        return ai_response
+    except Exception as e:
+        print(f"[DEBUG] Local LLM connectivity error: {e}")
+        return "LOCAL_FAILED"
+
+# ----------------------------
 # Gemini Response
 # ----------------------------
 
@@ -324,16 +369,41 @@ def get_gemini_response(user_message, session):
         return get_openrouter_response(user_message, session)
 
 # ----------------------------
+# General LLM Dispatcher
+# ----------------------------
+
+def get_ai_response(user_message, session):
+    """Dispatch to the configured LLM provider."""
+    provider = config.get('llm', 'provider', fallback='gemini').lower()
+    
+    if provider == 'local':
+        resp = get_local_response(user_message, session)
+        if resp != "LOCAL_FAILED": return resp
+        # Fallback if local fails? Maybe to Gemini/OpenRouter?
+        print("[WARN] Local LLM failed, falling back to configured backup or Gemini.")
+    
+    if provider == 'openrouter':
+        resp = get_openrouter_response(user_message, session)
+        if resp != "OPENROUTER_FAILED": return resp
+
+    # Default / Fallback to Gemini
+    return get_gemini_response(user_message, session)
+
+# ----------------------------
 # Main Logic
 # ----------------------------
 
 def find_answer(message, session_id):
     _, session = get_session(session_id)
-    # Get Response
-    ai_response = get_gemini_response(message, session)
-    if ai_response == "OPENROUTER_FAILED":
+    
+    # Get Response via Dispatcher
+    ai_response = get_ai_response(message, session)
+    
+    # Final Fallback to Knowledge Base Search if all LLMs fail
+    if ai_response in ["OPENROUTER_FAILED", "LOCAL_FAILED"] or not ai_response:
         # from knowledge_base_search import search_knowledge_base  # type: ignore
         ai_response = search_knowledge_base(message, knowledge_base)
+        
     # Validate & Post-process
     final_response = validate_response(message, ai_response, session)
     # Update History
