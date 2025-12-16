@@ -188,6 +188,20 @@
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 1.0;
             utterance.pitch = 1.0;
+
+            // Select a female voice
+            const voices = synth.getVoices();
+            // Preference order: specific high-quality female voices -> any "female" voice -> default
+            const femaleVoice = voices.find(v =>
+                v.name.includes('Microsoft Zira') ||
+                v.name.includes('Google US English') ||
+                v.name.toLowerCase().includes('female')
+            );
+
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+
             synth.speak(utterance);
         }
 
