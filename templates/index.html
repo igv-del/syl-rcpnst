@@ -52,12 +52,24 @@
 
             // Call API
             try {
+                // Get session_id from localStorage
+                const sessionId = localStorage.getItem('chat_session_id');
+
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: message })
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: sessionId
+                    })
                 });
                 const data = await response.json();
+
+                // Store new session_id if provided
+                if (data.session_id) {
+                    localStorage.setItem('chat_session_id', data.session_id);
+                }
+
                 addMessage(data.response, 'bot-message');
             } catch (error) {
                 console.error('Error:', error);

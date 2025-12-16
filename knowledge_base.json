@@ -1,14 +1,27 @@
 {
-    "greeting": "Welcome to Sylvan Learning! I'm your AI receptionist. How can I help you today? I can answer questions about our tutoring programs, pricing, or help you schedule an assessment.",
+    "greeting": "Hi! Thanks for calling Sylvan Learning of Ballwin. I’m your virtual assistant. How can I help you regarding your child's education?",
     "questions": [
         {
             "keywords": [
                 "price",
                 "cost",
                 "how much",
-                "tuition"
+                "tuition",
+                "expensive",
+                "rates",
+                "fees"
             ],
-            "answer": "Our pricing varies depending on the specific program and your child's needs. We typically start with an Sylvan Insight Assessment to pinpoint exactly where your child needs help. Would you like to schedule an assessment to get a personalized quote?"
+            "answer": "Pricing depends on your child’s needs. We always start with a Sylvan Insight Assessment to create a custom plan. Right now, the assessment is just $49. Want to book one?"
+        },
+        {
+            "keywords": [
+                "hi",
+                "hello",
+                "hi there",
+                "hello there",
+                "hey"
+            ],
+            "answer": "Hi there! Just in case we get cut off, could I get your name and phone number?"
         },
         {
             "keywords": [
@@ -16,44 +29,114 @@
                 "appointment",
                 "book",
                 "assessment",
-                "meet"
+                "meet",
+                "calendar",
+                "time",
+                "consultation",
+                "visit",
+                "enroll",
+                "enrollment",
+                "weekdays",
+                "weekends",
+                "morning",
+                "afternoon",
+                "evening"
             ],
-            "answer": "I can definitely help with that! You can use the calendar below to book a time that works best for you.\n\n[CALENDAR_EMBED]"
+            "answer": "I can definitely help with that. What days or times tend to work best for you?"
         },
         {
             "keywords": [
                 "math",
+                "algebra",
+                "geometry",
+                "calculus",
+                "elementary math",
+                "middle school math",
+                "high school math"
+            ],
+            "answer": "We cover it all, from elementary math up to Calculus. We'll build a custom plan just for them. Shall we start with the $49 checkup to pinpoint their needs?"
+        },
+        {
+            "keywords": [
                 "reading",
                 "writing",
-                "subjects"
+                "english",
+                "comprehension",
+                "literacy",
+                "spelling"
             ],
-            "answer": "We offer personalized tutoring in Math, Reading, Writing, Study Skills, and Homework Help for students in grades Pre-K through 12."
+            "answer": "We help with all of that—comprehension, fluency, vocabulary, you name it. The best first step is a quick assessment. Would you like to schedule one?"
+        },
+        {
+            "keywords": [
+                "test prep",
+                "sat",
+                "act",
+                "college prep",
+                "exam",
+                "standardized test",
+                "psat"
+            ],
+            "answer": "We do expert SAT and ACT prep. Our students see huge score jumps! We even have free practice exams. Want me to see when we can fit you in for one?"
         },
         {
             "keywords": [
                 "hours",
                 "open",
-                "time"
+                "time",
+                "availability",
+                "weekend",
+                "when are you open"
             ],
-            "answer": "We are generally open Monday through Thursday from 10am to 7pm, and Saturdays from 9am to 1pm. However, hours may vary by location."
+            "answer": "Usually, we're here Monday through Thursday afternoons, and Saturday mornings. I can have a director confirm specific openings for you if you'd like?"
         },
         {
             "keywords": [
                 "location",
                 "where",
-                "address"
+                "address",
+                "directions",
+                "map"
             ],
-            "answer": "We have centers located nationwide. To find the center nearest you, please visit sylvanlearning.com/locations."
+            "answer": "We're over at 14248 G Manchester Rd in Ballwin. Super easy to find!"
         },
         {
             "keywords": [
                 "human",
                 "person",
                 "talk to someone",
-                "representative"
+                "representative",
+                "agent",
+                "operator",
+                "staff",
+                "director"
             ],
-            "answer": "I understand you'd like to speak with a staff member. Please call our main office at 1-800-EDUCATE during business hours, or leave your details here and we'll call you back."
+            "answer": "Of course. Let me get you to a director who can help. One sec!"
+        },
+        {
+            "keywords": [
+                "guarantee",
+                "promise",
+                "results",
+                "does it work"
+            ],
+            "answer": "We actually guarantee results—our students typically see up to 3x more growth than their peers. A director can explain exactly how that works for your child's grade level."
+        },
+        {
+            "keywords": [
+                "assess",
+                "assessment",
+                "test",
+                "evaluation",
+                "insight",
+                "checkup"
+            ],
+            "answer": "Our Insight Assessment is great—it shows us exactly where your child is strong and where they have gaps. It's only $49 right now. Do you want to book it?"
         }
     ],
-    "default": "I'm not sure I have the exact answer for that, but I'd love to connect you with a director who can help. Would you like to schedule a quick call?"
+    "objections": {
+        "too_expensive": "I hear you. A lot of families start with the $49 checkup just to see what's going on before deciding anything. It's a low-risk way to get answers.",
+        "needs_referral": "Every child is so different. That's why the assessment is key—it tells us if we're even the right fit. It's just $49 to get a clear picture."
+    },
+    "default": "I'm not 100% sure on that one, but I can have a director give you a call to explain. Would that be okay?"
 }

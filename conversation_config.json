@@ -1,0 +1,41 @@
+{
+    "keywords": {
+        "affirmative": [
+            "yes",
+            "yeah",
+            "yep",
+            "sure",
+            "ok",
+            "okay",
+            "please",
+            "that works",
+            "sounds good",
+            "go ahead",
+            "let's do it"
+        ],
+        "uncertain": [
+            "hmm",
+            "uh",
+            "um",
+            "maybe",
+            "not sure",
+            "idk",
+            "i don't know"
+        ],
+        "small_talk": [
+            "hello",
+            "hi",
+            "hey",
+            "thanks",
+            "thank you"
+        ]
+    },
+    "responses": {
+        "affirmative_scheduling": "Awesome. What works better for you—weekdays after school or weekends?",
+        "pricing_needs_info": "Got it. To give you an exact price, I just need your child's grade and what subject they're struggling with?",
+        "uncertain_offer": "Totally fair. Want a quick rundown of how we work, or should we just book the $49 checkup?",
+        "greeting_small_talk": "Hi! I'm here to help. What's going on with your child's learning?",
+        "voice_affirmative_scheduling": "Great. What day and time generally work best for you, weekdays after school or weekends?",
+        "voice_uncertain_offer": "That’s okay. Would you like a quick overview of our programs, or do you prefer to talk about pricing first?"
+    }
+}
