@@ -1,6 +1,7 @@
 import json
 import os
 import configparser
+import re
 import requests
 import google.generativeai as genai
 import time
@@ -260,6 +261,17 @@ def validate_response(user_message, response_text, session=None):
     if "director" in resp_lower and ("know" in resp_lower or "email" in resp_lower or "message" in resp_lower):
          print(f"[DUMMY NOTIFICATION] Sending email to director regarding: {user_message}")
 
+    # --- Offline/Fallback Data Capture ---
+    # If the response is the default fallback, but we detect a phone number, override it.
+    # This prevents "I'm not sure" responses when the user provides the info we just asked for.
+    phone_pattern = re.compile(r'\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b')
+    if "not 100% sure" in response_text and phone_pattern.search(user_message):
+        response_text = "Thanks! I've noted down your information. A director will reach out to you shortly to help."
+        # Optionally log this success
+        print(f"[OFFLINE CAPTURE] Captured contact info: {user_message}")
+
+    return response_text
+
     return response_text
 
 # ----------------------------
@@ -330,9 +342,10 @@ def chat():
 def voice():
     resp = VoiceResponse()
     greet = knowledge_base.get("greeting", "Welcome to Sylvan Learning!")
+    # Use 'alice' for a standard female voice, or specify language/voice
     gather = resp.gather(input='speech', action='/voice/handle-input', timeout=3)
-    gather.say("Welcome to Sylvan Learning. " + greet)
-    resp.say("I didn't hear anything. Please call back. Goodbye!")
+    gather.say("Welcome to Sylvan Learning. " + greet, voice='alice')
+    resp.say("I didn't hear anything. Please call back. Goodbye!", voice='alice')
     return str(resp)
 
 @app.route('/voice/handle-input', methods=['POST'])
@@ -349,12 +362,12 @@ def voice_handle_input():
         if reply_type == "affirmative":
             gather = resp.gather(input='speech', action='/voice/handle-input', timeout=3)
             msg = scripts.get('voice_affirmative_scheduling', "Great. What day and time generally work best for you, weekdays after school or weekends?")
-            gather.say(msg)
+            gather.say(msg, voice='alice')
             return str(resp)
         elif reply_type == "uncertain":
             gather = resp.gather(input='speech', action='/voice/handle-input', timeout=3)
             msg = scripts.get('voice_uncertain_offer', "That’s okay. Would you like a quick overview of our programs, or do you prefer to talk about pricing first?")
-            gather.say(msg)
+            gather.say(msg, voice='alice')
             return str(resp)
 
         # Fallback to full AI flow
@@ -370,7 +383,7 @@ def voice_handle_input():
         voice_answer = answer.replace('[CALENDAR_EMBED]', '').replace('calendar below', 'our website')
         
         gather = resp.gather(input='speech', action='/voice/handle-input', timeout=3)
-        gather.say(voice_answer)
+        gather.say(voice_answer, voice='alice')
         
         if should_hangup:
              resp.hangup()
@@ -378,10 +391,10 @@ def voice_handle_input():
              resp.append(gather)
 
         if not should_hangup and not "questions" in voice_answer.lower():
-             # resp.say("Do you have any other questions?")
+             # resp.say("Do you have any other questions?", voice='alice')
              pass
     else:
-        resp.say("I didn't catch that.")
+        resp.say("I didn't catch that.", voice='alice')
         resp.redirect('/voice')
 
     return str(resp)
