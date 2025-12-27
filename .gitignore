@@ -1,1 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Environment files
+.env
 config.ini
+*.key
+*.credentials
+credentials.json
+
+# Logs
+*.log
+
+# Compiled assets
+*.sqlite3
+instance/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code / AntiGravity
+.vscode/
+.code/
+.history/
+
+# Flask cache
+*.cache
