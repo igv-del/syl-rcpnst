@@ -1,5 +1,6 @@
 import requests
 import google.generativeai as genai
+import time
 
 class LLMManager:
     def __init__(self, config, system_prompt):
@@ -21,10 +22,10 @@ class LLMManager:
             return genai.GenerativeModel(model_name)
         return None
 
-    def get_local_response(self, user_message, history):
+    def get_local_response(self, user_message, history, dynamic_context=""):
         """Support for local OpenAI-compatible endpoints (Ollama, LM Studio)."""
         base_url = self.config.get('local', 'base_url', fallback='http://localhost:11434/v1')
-        model = self.config.get('local', 'model', fallback='llama3.2')
+        model = self.config.get('local', 'model', fallback='qwen2.5:1.5b')
         api_key = self.config.get('local', 'api_key', fallback='lm-studio')
         
         if not base_url.endswith('/chat/completions'):
@@ -38,17 +39,29 @@ class LLMManager:
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}"
             }
-            messages = [{"role": "system", "content": self.system_prompt}]
+            system_content = self.system_prompt
+            if dynamic_context:
+                system_content += "\n\n**Relevant Context:**\n" + dynamic_context
+                
+            messages = [{"role": "system", "content": system_content}]
             messages.extend(history)
             messages.append({"role": "user", "content": user_message})
             
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": 0.7
+                "temperature": 0.3, # Lowered from 0.5 for more focus
+                "top_p": 0.9,       # Slightly increased for better vocabulary variety
+                "max_tokens": 150,   # Reduced as we want concise answers
+                "frequency_penalty": 0.2, # Slightly increased to avoid repetition
+                "presence_penalty": 0.1
             }
             
-            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            start_time = time.time()
+            response = requests.post(url, headers=headers, json=payload, timeout=120)
+            latency = time.time() - start_time
+            print(f"[DEBUG] Local LLM Response Latency: {latency:.2f}s")
+            
             if response.status_code != 200:
                 print(f"[DEBUG] Local LLM Error: {response.text}")
                 return "LOCAL_FAILED"
@@ -156,8 +169,13 @@ class LLMManager:
         # Primary Provider
         if provider == 'local':
             response = self.get_local_response(user_message, history)
-            if response != "LOCAL_FAILED": return response
-            print("[WARN] Local LLM failed. Falling back to OpenAI (if configured).")
+            # FORCE LOCAL ONLY: Return result immediately, even if it failed.
+            # If it failed, the app will receive "LOCAL_FAILED" and handle it (likely calling KB).
+            return response
+            
+            # Legacy fallback logic below is bypassed for 'local' provider
+            # if response != "LOCAL_FAILED": return response
+            # print("[WARN] Local LLM failed. Falling back to OpenAI (if configured).")
             
             # Fallback 1: OpenAI
             response = self.get_openai_response(user_message, history)

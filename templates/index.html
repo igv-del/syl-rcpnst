@@ -23,7 +23,6 @@
                     </div>
                 </div>
                 <div class="input-area">
-                    <button id="mic-btn" class="mic-btn" onclick="toggleVoice()">🎤</button>
                     <input type="text" id="user-input" placeholder="Ask about tuition, subjects, or scheduling..."
                         onkeypress="handleKeyPress(event)">
                     <button onclick="sendMessage()">Send</button>
@@ -70,14 +69,14 @@
                     localStorage.setItem('chat_session_id', data.session_id);
                 }
 
-                addMessage(data.response, 'bot-message');
+                addMessage(data.response, 'bot-message', data.audio_url);
             } catch (error) {
                 console.error('Error:', error);
                 addMessage("I'm having trouble connecting right now. Please try again.", 'bot-message');
             }
         }
 
-        function addMessage(text, className) {
+        function addMessage(text, className, audioUrl = null) {
             const chatWindow = document.getElementById('chat-window');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
@@ -107,6 +106,23 @@
 
             chatWindow.appendChild(messageDiv);
             chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            // Voice/Audio disabled for performance
+            // if (className === 'bot-message') {
+            //     if (audioUrl) {
+            //         console.log("Playing VibeVoice audio:", audioUrl);
+            //         const audio = new Audio(audioUrl);
+            //         audio.play().catch(e => {
+            //             console.warn("VibeVoice audio play failed, falling back to WebSpeech:", e);
+            //             const cleanText = text.replace(/<[^>]*>/g, '').replace('[CALENDAR_EMBED]', '');
+            //             speakText(cleanText);
+            //         });
+            //     } else {
+            //         // Fallback to Web Speech API
+            //         const cleanText = text.replace(/<[^>]*>/g, '').replace('[CALENDAR_EMBED]', '');
+            //         speakText(cleanText);
+            //     }
+            // }
         }
 
         function openSidePanel(url) {
@@ -139,82 +155,71 @@
         }
 
         // ----------------------------
-        // Voice Interaction Logic
+        // Voice Interaction Logic (DISABLED FOR PERFORMANCE)
         // ----------------------------
-        let recognition;
-        let isListening = false;
-        const synth = window.speechSynthesis;
+        // let recognition;
+        // let isListening = false;
+        // const synth = window.speechSynthesis;
 
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
+        // if ('webkitSpeechRecognition' in window) {
+        //     recognition = new webkitSpeechRecognition();
+        //     recognition.continuous = false;
+        //     recognition.interimResults = false;
+        //     recognition.lang = 'en-US';
 
-            recognition.onstart = function () {
-                isListening = true;
-                document.getElementById('mic-btn').classList.add('listening');
-                document.getElementById('user-input').placeholder = "Listening...";
-            };
+        //     recognition.onstart = function () {
+        //         isListening = true;
+        //         document.getElementById('mic-btn').classList.add('listening');
+        //         document.getElementById('user-input').placeholder = "Listening...";
+        //     };
 
-            recognition.onend = function () {
-                isListening = false;
-                document.getElementById('mic-btn').classList.remove('listening');
-                document.getElementById('user-input').placeholder = "Ask about tuition, subjects, or scheduling...";
-            };
+        //     recognition.onend = function () {
+        //         isListening = false;
+        //         document.getElementById('mic-btn').classList.remove('listening');
+        //         document.getElementById('user-input').placeholder = "Ask about tuition, subjects, or scheduling...";
+        //     };
 
-            recognition.onresult = function (event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('user-input').value = transcript;
-                sendMessage(); // Auto-send after speaking
-            };
-        } else {
-            document.getElementById('mic-btn').style.display = 'none';
-            console.log("Web Speech API not supported");
-        }
+        //     recognition.onresult = function (event) {
+        //         const transcript = event.results[0][0].transcript;
+        //         document.getElementById('user-input').value = transcript;
+        //         sendMessage(); // Auto-send after speaking
+        //     };
+        // } else {
+        //     document.getElementById('mic-btn').style.display = 'none';
+        //     console.log("Web Speech API not supported");
+        // }
 
-        function toggleVoice() {
-            if (isListening) {
-                recognition.stop();
-            } else {
-                recognition.start();
-            }
-        }
+        // function toggleVoice() {
+        //     if (isListening) {
+        //         recognition.stop();
+        //     } else {
+        //         recognition.start();
+        //     }
+        // }
 
-        function speakText(text) {
-            if (synth.speaking) {
-                synth.cancel();
-            }
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
+        // function speakText(text) {
+        //     if (synth.speaking) {
+        //         synth.cancel();
+        //     }
+        //     const utterance = new SpeechSynthesisUtterance(text);
+        //     utterance.rate = 1.0;
+        //     utterance.pitch = 1.0;
 
-            // Select a female voice
-            const voices = synth.getVoices();
-            // Preference order: specific high-quality female voices -> any "female" voice -> default
-            const femaleVoice = voices.find(v =>
-                v.name.includes('Microsoft Zira') ||
-                v.name.includes('Google US English') ||
-                v.name.toLowerCase().includes('female')
-            );
+        //     // Select a female voice
+        //     const voices = synth.getVoices();
+        //     // Preference order: specific high-quality female voices -> any "female" voice -> default
+        //     const femaleVoice = voices.find(v =>
+        //         v.name.includes('Microsoft Zira') ||
+        //         v.name.includes('Google US English') ||
+        //         v.name.toLowerCase().includes('female')
+        //     );
 
-            if (femaleVoice) {
-                utterance.voice = femaleVoice;
-            }
+        //     if (femaleVoice) {
+        //         utterance.voice = femaleVoice;
+        //     }
 
-            synth.speak(utterance);
-        }
-
-        // Update addMessage to speak bot responses
-        const originalAddMessage = addMessage;
-        addMessage = function (text, className) {
-            originalAddMessage(text, className);
-            if (className === 'bot-message') {
-                // Strip HTML tags for speech
-                const cleanText = text.replace(/<[^>]*>/g, '').replace('[CALENDAR_EMBED]', '');
-                speakText(cleanText);
-            }
-        };
+        //     synth.speak(utterance);
+        // }
     </script>
 </body>
 

@@ -1,0 +1,16 @@
+================================================================================
+CALENDAR URL TEST
+================================================================================
+
+Calendar URL from config.ini:
+https://calendar.google.com/calendar/appointments/schedules/AcZssZ1OZll1-DrCUKBTyWJMjK5qzvEka_0-NK6EjK0gPcpLUi28vnEb-JBKIupr73NKHguOsIXRZnd3?gv=true
+
+URL Length: 148 characters
+
+Expected URL:
+https://calendar.google.com/calendar/appointments/schedules/AcZssZ0pc_HNDTuFq4i9jaFyYtPKGCERR07B-IkELiPkwtKAhdae1VdvK-6BIGY38qdSbXjZLfuJyQHh?gv=true
+
+Expected Length: 148 characters
+
+URLs match: False
+================================================================================

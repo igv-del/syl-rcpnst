@@ -31,11 +31,11 @@
         ]
     },
     "responses": {
-        "affirmative_scheduling": "Awesome. What works better for you—weekdays after school or weekends?",
+        "affirmative_scheduling": "Awesome! You can pick a time on our calendar that works for you. [CALENDAR_EMBED]",
         "pricing_needs_info": "Got it. To give you an exact price, I just need your child's grade and what subject they're struggling with?",
-        "uncertain_offer": "Totally fair. Want a quick rundown of how we work, or should we just book the $49 checkup?",
+        "uncertain_offer": "Totally fair. Want a quick rundown of how we work, or should we just book the $29 checkup?",
         "greeting_small_talk": "Hi! I'm here to help. What's going on with your child's learning?",
-        "voice_affirmative_scheduling": "Great. What day and time generally work best for you, weekdays after school or weekends?",
+        "voice_affirmative_scheduling": "Great! You can pick a time on our calendar on the website. Does that work for you?",
         "voice_uncertain_offer": "That’s okay. Would you like a quick overview of our programs, or do you prefer to talk about pricing first?"
     }
 }

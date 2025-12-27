@@ -1,0 +1,22 @@
+--- Starting Response Quality Diagnostic ---
+
+[Test 1] User: Hi there, how are you?
+Bot: Hello! IÆm doing great, thank you. How can I assist you today with your childÆs education?
+
+[Test 2] User: Where are you located?
+Bot: WeÆre right here at 14248 G Manchester Rd in Ballwin, Missouri. ItÆs very easy to find by the Sylvan Learning sign on your left as you enter town.
+
+[Test 3] User: How much does tutoring cost?
+Bot: It depends on what your child needs exactly. We always start with a quick assessment which is just $49 and it pinpoints exactly where they need help. Want to book that one right now? <div class="calendar-embed"><iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1OZll1-DrCUKBTyWJMjK5qzvEka_0-NK6EjK0gPcpLUi28vnEb-JBKIupr73NKHguOsIXRZnd3?gv=true" style="border: 0" width="100%" height="600" frameborder="0"></iframe></div>
+
+[Test 4] User: Do you have math tutoring for 5th graders?
+Bot: Absolutely! For fifth grade, we cover all the basics up through algebra, including geometry as well. ItÆs a great time to lay down some strong foundations and build on what theyÆre learning in school. Would you like to schedule that now? <div class="calendar-embed"><iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1OZll1-DrCUKBTyWJMjK5qzvEka_0-NK6EjK0gPcpLUi28vnEb-JBKIupr73NKHguOsIXRZnd3?gv=true" style="border: 0" width="100%" height="600" frameborder="0"></iframe></div>
+
+[Test 5] User: Yes, I'd like to schedule an assessment.
+Bot: Sure thing! The best first step is our Insight Assessment. It pinpoints exactly where your child needs help. Want to book one right away? <div class="calendar-embed"><iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1OZll1-DrCUKBTyWJMjK5qzvEka_0-NK6EjK0gPcpLUi28vnEb-JBKIupr73NKHguOsIXRZnd3?gv=true" style="border: 0" width="100%" height="600" frameborder="0"></iframe></div> And itÆs just $49 right now û thatÆs a great deal!
+
+[Test 6] User: That's too expensive.
+Bot: I understand, and we do offer some special deals like our free SAT or ACT practice exam as well as a $100 off tutoring coupon. It can really make a difference in how much your child is able to learn over the course of their academic year. Would you like more information on any of those?
+
+[Test 7] User: I need to talk to a human.
+Error: ('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))
